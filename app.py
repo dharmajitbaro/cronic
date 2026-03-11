@@ -3,97 +3,110 @@ import numpy as np
 import joblib
 
 # Load trained model and scaler
-# Note: Ensure these files are in your directory
 model = joblib.load("heart_disease_model.pkl")
 scaler = joblib.load("scaler.pkl")
 
-st.set_page_config(page_title="Heart Health Assistant", layout="wide", page_icon="❤️")
+st.set_page_config(page_title="Heart Disease Prediction", layout="centered")
 
-# Custom CSS for styling
-st.markdown("""
-    <style>
-    .main { background-color: #f5f7f9; }
-    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #ff4b4b; color: white; }
-    </style>
-    """, unsafe_allow_html=True)
+st.title("❤️ Heart Disease Prediction")
+st.write("Prediction based on UCI Heart Disease Dataset")
 
-st.title("❤️ Heart Disease Risk Assessment")
-st.write("Enter the patient's clinical data below to check for heart disease risk.")
+# -------------------- INPUTS -------------------- #
 
-# --- UI LAYOUT ---
-tab1, tab2 = st.tabs(["📋 Patient Profile", "🔬 Clinical Data"])
+age = st.number_input("Age", 20, 100, 45)
 
-with tab1:
-    col1, col2 = st.columns(2)
-    with col1:
-        age = st.number_input("Age", 20, 100, 45, help="Patient's age in years")
-        sex = st.selectbox("Biological Sex", ["Female", "Male"])
-        cp = st.selectbox(
-            "Chest Pain Type",
-            ["Typical Angina", "Atypical Angina", "Non-anginal Pain", "Asymptomatic"],
-            help="Typical Angina: Heart-related pain. Asymptomatic: No pain."
-        )
-    with col2:
-        trestbps = st.number_input("Resting Blood Pressure (mmHg)", 80, 250, 120)
-        chol = st.number_input("Serum Cholesterol (mg/dl)", 100, 600, 200)
-        fbs = st.selectbox("Is Fasting Blood Sugar > 120 mg/dl?", ["No", "Yes"])
+sex = st.selectbox("Sex", ["Female", "Male"])
 
-with tab2:
-    col3, col4 = st.columns(2)
-    with col3:
-        restecg = st.selectbox(
-            "Resting ECG Results",
-            ["Normal", "ST-T Wave Abnormality", "Left Ventricular Hypertrophy"]
-        )
-        thalach = st.number_input("Maximum Heart Rate Achieved", 60, 220, 150)
-        exang = st.selectbox("Exercise Induced Angina?", ["No", "Yes"], help="Does exercise cause chest pain?")
-    
-    with col4:
-        oldpeak = st.number_input("ST Depression (Relative to Rest)", 0.0, 10.0, 1.0, help="ST depression induced by exercise relative to rest")
-        slope = st.selectbox(
-            "Peak Exercise ST Segment Slope",
-            ["Upsloping", "Flat", "Downsloping"]
-        )
-        ca = st.slider("Number of Major Vessels (0-3)", 0, 3, 0, help="Number of major vessels colored by fluoroscopy")
-        thal = st.selectbox(
-            "Thalassemia Status",
-            ["Normal", "Fixed Defect", "Reversible Defect"]
-        )
+cp = st.selectbox(
+    "Chest Pain Type (cp)",
+    ["Typical Angina", "Atypical Angina", "Non-anginal Pain", "Asymptomatic"]
+)
 
-# --- ENCODING ---
-# (Using your existing mapping logic)
-sex_val = 1 if sex == "Male" else 0
-cp_map = {"Typical Angina": 0, "Atypical Angina": 1, "Non-anginal Pain": 2, "Asymptomatic": 3}
-fbs_val = 1 if fbs == "Yes" else 0
-restecg_map = {"Normal": 0, "ST-T Wave Abnormality": 1, "Left Ventricular Hypertrophy": 2}
-exang_val = 1 if exang == "Yes" else 0
-slope_map = {"Upsloping": 0, "Flat": 1, "Downsloping": 2}
-thal_map = {"Normal": 1, "Fixed Defect": 2, "Reversible Defect": 3}
+trestbps = st.number_input("Resting Blood Pressure (trestbps)", 80, 250, 120)
 
-# Prepare data for prediction
-input_data = np.array([[ 
-    age, sex_val, cp_map[cp], trestbps, chol, fbs_val,
-    restecg_map[restecg], thalach, exang_val, oldpeak,
-    slope_map[slope], ca, thal_map[thal]
+chol = st.number_input("Serum Cholesterol (chol)", 100, 600, 200)
+
+fbs = st.selectbox("Fasting Blood Sugar > 120 mg/dl (fbs)", ["No", "Yes"])
+
+restecg = st.selectbox(
+    "Resting ECG (restecg)",
+    ["Normal", "ST-T Wave Abnormality", "Left Ventricular Hypertrophy"]
+)
+
+thalach = st.number_input("Maximum Heart Rate Achieved (thalach)", 60, 220, 150)
+
+exang = st.selectbox("Exercise Induced Angina (exang)", ["No", "Yes"])
+
+oldpeak = st.number_input("ST Depression (oldpeak)", 0.0, 10.0, 1.0)
+
+slope = st.selectbox(
+    "Slope of Peak Exercise ST Segment (slope)",
+    ["Upsloping", "Flat", "Downsloping"]
+)
+
+ca = st.selectbox("Number of Major Vessels Colored (ca)", [0, 1, 2, 3])
+
+thal = st.selectbox(
+    "Thalassemia (thal)",
+    ["Normal", "Fixed Defect", "Reversible Defect"]
+)
+
+# -------------------- ENCODING -------------------- #
+
+sex = 1 if sex == "Male" else 0
+
+cp_map = {
+    "Typical Angina": 0,
+    "Atypical Angina": 1,
+    "Non-anginal Pain": 2,
+    "Asymptomatic": 3
+}
+cp = cp_map[cp]
+
+fbs = 1 if fbs == "Yes" else 0
+
+restecg_map = {
+    "Normal": 0,
+    "ST-T Wave Abnormality": 1,
+    "Left Ventricular Hypertrophy": 2
+}
+restecg = restecg_map[restecg]
+
+exang = 1 if exang == "Yes" else 0
+
+slope_map = {
+    "Upsloping": 0,
+    "Flat": 1,
+    "Downsloping": 2
+}
+slope = slope_map[slope]
+
+thal_map = {
+    "Normal": 1,
+    "Fixed Defect": 2,
+    "Reversible Defect": 3
+}
+thal = thal_map[thal]
+
+# -------------------- INPUT ARRAY -------------------- #
+# ⚠️ ORDER MUST MATCH TRAINING DATA
+
+input_data = np.array([[ 
+    age, sex, cp, trestbps, chol, fbs,
+    restecg, thalach, exang, oldpeak,
+    slope, ca, thal
 ]])
 
-# --- PREDICTION ---
-st.markdown("---")
-if st.button("🔍 Run Diagnostic Check"):
-    with st.spinner('Analyzing medical data...'):
-        input_scaled = scaler.transform(input_data)
-        prediction = model.predict(input_scaled)[0]
-        probability = model.predict_proba(input_scaled)[0][1]
+# -------------------- PREDICTION -------------------- #
 
-        # Results Display
-        st.subheader("Results")
-        if prediction == 1:
-            st.error(f"### High Risk Detected")
-            st.progress(probability)
-            st.write(f"The model estimates a **{probability:.1%}%** probability of heart disease.")
-            st.warning("**Note:** This is an AI-generated prediction. Please consult a cardiologist for a formal diagnosis.")
-        else:
-            st.success(f"### Low Risk Detected")
-            st.progress(probability)
-            st.write(f"The model estimates a **{probability:.1%}%** probability of heart disease.")
-            st.info("Results suggest a healthy profile, but regular checkups are always recommended.")
+if st.button("Predict Heart Disease"):
+    input_scaled = scaler.transform(input_data)
+    prediction = model.predict(input_scaled)[0]
+    probability = model.predict_proba(input_scaled)[0][1]
+
+    if prediction == 1:
+        st.error(f"⚠️ Heart Disease Detected\n\nRisk Probability: {probability:.2%}")
+    else:
+        st.success(f"✅ No Heart Disease Detected\n\nRisk Probability: {probability:.2%}")
+
+this another project to predict heart disease everyting working fine just make it easy to use by the users like the terms and interface
