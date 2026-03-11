@@ -109,4 +109,3 @@ if st.button("Predict Heart Disease"):
     else:
         st.success(f"✅ No Heart Disease Detected\n\nRisk Probability: {probability:.2%}")
 
-this another project to predict heart disease everyting working fine just make it easy to use by the users like the terms and interface
